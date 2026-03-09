@@ -9,6 +9,7 @@ namespace wander {
 void SceneManager::push(std::unique_ptr<Scene> scene, Transition transition) {
     if (transition.type != TransitionType::None && !stack_.empty()) {
         transitioning_ = true;
+        midpoint_swapped_ = false;
         transition_timer_ = 0.0f;
         transition_ = transition;
         incoming_scene_ = std::move(scene);
@@ -28,6 +29,7 @@ void SceneManager::pop(Transition transition) {
 
     if (transition.type != TransitionType::None) {
         transitioning_ = true;
+        midpoint_swapped_ = false;
         transition_timer_ = 0.0f;
         transition_ = transition;
         transition_action_ = TransitionAction::Pop;
@@ -44,6 +46,7 @@ void SceneManager::pop(Transition transition) {
 void SceneManager::replace(std::unique_ptr<Scene> scene, Transition transition) {
     if (transition.type != TransitionType::None && !stack_.empty()) {
         transitioning_ = true;
+        midpoint_swapped_ = false;
         transition_timer_ = 0.0f;
         transition_ = transition;
         incoming_scene_ = std::move(scene);
@@ -69,8 +72,11 @@ void SceneManager::update(f32 dt) {
     // Handle transition
     if (transitioning_) {
         transition_timer_ += dt;
-        if (transition_timer_ >= transition_.duration) {
-            transitioning_ = false;
+
+        // Swap scenes at midpoint (screen is fully black)
+        f32 midpoint = transition_.duration * 0.5f;
+        if (!midpoint_swapped_ && transition_timer_ >= midpoint) {
+            midpoint_swapped_ = true;
 
             switch (transition_action_) {
                 case TransitionAction::Push:
@@ -92,6 +98,11 @@ void SceneManager::update(f32 dt) {
                     stack_.push_back({std::move(incoming_scene_)});
                     break;
             }
+        }
+
+        // End transition
+        if (transition_timer_ >= transition_.duration) {
+            transitioning_ = false;
         }
     }
 

@@ -46,6 +46,16 @@ Font font_load(const char* ttf_path, f32 pixel_size) {
         LOG_WARN("Font atlas may be too small for size %.0f", pixel_size);
     }
 
+    // Extract vertical metrics for proper text positioning
+    stbtt_fontinfo info;
+    stbtt_InitFont(&info, ttf_data.data(), 0);
+    int raw_ascent, raw_descent, raw_linegap;
+    stbtt_GetFontVMetrics(&info, &raw_ascent, &raw_descent, &raw_linegap);
+    f32 scale = stbtt_ScaleForPixelHeight(&info, pixel_size);
+    font.ascent = raw_ascent * scale;
+    font.descent = -(raw_descent * scale);  // raw descent is negative
+    font.line_height = font.ascent + font.descent;
+
     // Convert single-channel bitmap to RGBA for SDL texture
     std::vector<u8> rgba(atlas_w * atlas_h * 4);
     for (i32 i = 0; i < atlas_w * atlas_h; i++) {
@@ -90,12 +100,12 @@ void font_destroy(Font& font) {
 static void draw_text_raw(const Font& font, const char* text, Vec2 pos) {
     auto* internal = static_cast<FontInternal*>(font.internal);
     f32 x = pos.x;
-    f32 y = pos.y;
+    f32 y = pos.y + font.ascent;  // Convert top-of-text to baseline for stbtt
 
     while (*text) {
         if (*text == '\n') {
             x = pos.x;
-            y += font.size;
+            y += font.line_height;
             text++;
             continue;
         }
@@ -177,7 +187,7 @@ Vec2 measure_text(const Font& font, const char* text) {
     }
 
     if (x > max_x) max_x = x;
-    return {max_x, font.size * lines};
+    return {max_x, font.line_height * lines};
 }
 
 } // namespace wander

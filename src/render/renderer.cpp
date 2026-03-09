@@ -100,8 +100,15 @@ void draw_rect_outline(Rect rect, Color color) {
     SDL_RenderRect(r, &fr);
 }
 
+void draw_line(Vec2 from, Vec2 to, Color color) {
+    SDL_Renderer* r = app_get_sdl_renderer();
+    SDL_SetRenderDrawColor(r, color.r, color.g, color.b, color.a);
+    SDL_RenderLine(r, from.x, from.y, to.x, to.y);
+}
+
 void draw_shadow(Vec2 pos, f32 width, f32 height, u8 alpha, i32 segments) {
     SDL_Renderer* r = app_get_sdl_renderer();
+    SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(r, 0, 0, 0, alpha);
     f32 hw = width * 0.5f;
     f32 hh = height * 0.5f;
@@ -113,6 +120,16 @@ void draw_shadow(Vec2 pos, f32 width, f32 height, u8 alpha, i32 segments) {
         SDL_FRect fr = {pos.x - sx, pos.y + sy, sx * 2.0f, scanline_h};
         SDL_RenderFillRect(r, &fr);
     }
+}
+
+void set_clip_rect(Rect rect) {
+    SDL_Rect cr = {static_cast<int>(rect.x), static_cast<int>(rect.y),
+                   static_cast<int>(rect.w), static_cast<int>(rect.h)};
+    SDL_SetRenderClipRect(app_get_sdl_renderer(), &cr);
+}
+
+void clear_clip_rect() {
+    SDL_SetRenderClipRect(app_get_sdl_renderer(), nullptr);
 }
 
 } // namespace wander

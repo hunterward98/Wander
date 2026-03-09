@@ -44,7 +44,7 @@ void DebugOverlay::render() {
     draw_rect_outline({x, y, w, h}, Color(100, 100, 100, 150));
 
     f32 text_x = x + 6.0f;
-    f32 text_y = y + 6.0f + font_->size * 0.8f;
+    f32 text_y = y + 6.0f;
     char buf[128];
 
     // FPS

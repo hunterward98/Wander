@@ -60,8 +60,25 @@ int app_run(const AppConfig& config, const GameCallbacks& callbacks) {
         return 1;
     }
 
-    if (config.vsync) {
-        SDL_SetRenderVSync(s_app.renderer, 1);
+    // Set logical presentation for pixel-perfect integer scaling (opt-in)
+    if (config.use_logical_presentation) {
+        i32 logical_w = config.logical_width > 0 ? config.logical_width : config.window_width;
+        i32 logical_h = config.logical_height > 0 ? config.logical_height : config.window_height;
+        if (!SDL_SetRenderLogicalPresentation(s_app.renderer,
+                logical_w, logical_h,
+                SDL_LOGICAL_PRESENTATION_INTEGER_SCALE)) {
+            LOG_WARN("Failed to set logical presentation: %s", SDL_GetError());
+        }
+    }
+
+    // Apply fixed render scale (e.g. 2x for pixel-doubled rendering)
+    if (config.render_scale != 1.0f) {
+        SDL_SetRenderScale(s_app.renderer, config.render_scale, config.render_scale);
+    }
+
+    // Set minimum window size if specified
+    if (config.min_window_width > 0 && config.min_window_height > 0) {
+        SDL_SetWindowMinimumSize(s_app.window, config.min_window_width, config.min_window_height);
     }
 
     LOG_INFO("Renderer created: %s", SDL_GetRendererName(s_app.renderer));
@@ -100,8 +117,12 @@ int app_run(const AppConfig& config, const GameCallbacks& callbacks) {
         }
 
         // Poll events
+        bool got_resize = false;
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            // Convert mouse coordinates from window to logical space
+            SDL_ConvertEventToRenderCoordinates(s_app.renderer, &event);
+
             // Forward to game first
             if (callbacks.on_event) callbacks.on_event(&event);
 
@@ -112,6 +133,7 @@ int app_run(const AppConfig& config, const GameCallbacks& callbacks) {
                 case SDL_EVENT_WINDOW_RESIZED:
                     s_app.window_size.x = event.window.data1;
                     s_app.window_size.y = event.window.data2;
+                    got_resize = true;
                     break;
                 default:
                     break;
@@ -126,13 +148,23 @@ int app_run(const AppConfig& config, const GameCallbacks& callbacks) {
             s_app.frame_count++;
         }
 
-        // Render
-        SDL_SetRenderDrawColor(s_app.renderer, 20, 20, 30, 255);
-        SDL_RenderClear(s_app.renderer);
+        // Render + frame pacing (skip entirely during resize to prevent backlog)
+        if (!got_resize) {
+            SDL_SetRenderDrawColor(s_app.renderer, 20, 20, 30, 255);
+            SDL_RenderClear(s_app.renderer);
 
-        if (callbacks.on_render) callbacks.on_render();
+            if (callbacks.on_render) callbacks.on_render();
 
-        SDL_RenderPresent(s_app.renderer);
+            SDL_RenderPresent(s_app.renderer);
+
+            // Manual frame pacing
+            u64 end_ticks = SDL_GetPerformanceCounter();
+            f32 frame_ms = static_cast<f32>(end_ticks - now_ticks) / static_cast<f32>(freq) * 1000.0f;
+            f32 target_ms = 1000.0f / config.target_fps;
+            if (frame_ms < target_ms) {
+                SDL_Delay(static_cast<u32>(target_ms - frame_ms));
+            }
+        }
     }
 
     // Shutdown

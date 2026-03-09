@@ -72,6 +72,23 @@ void ParticleEmitter::render() {
     }
 }
 
+void ParticleEmitter::render(Vec2 cam_offset, f32 cam_scale) {
+    for (auto& p : particles_) {
+        f32 t = p.life / p.max_life;
+        f32 size = lerp(p.size, p.size_end, t) * cam_scale;
+        Color color = lerp_color(p.color_start, p.color_end, t);
+        Vec2 sp = (p.position + cam_offset) * cam_scale;
+
+        if (config_.texture && config_.texture->handle) {
+            Rect dst = {sp.x - size * 0.5f, sp.y - size * 0.5f, size, size};
+            draw_texture_ex(*config_.texture, config_.tex_region, dst,
+                           p.rotation, {size * 0.5f, size * 0.5f}, false, false, color);
+        } else {
+            draw_rect({sp.x - size * 0.5f, sp.y - size * 0.5f, size, size}, color);
+        }
+    }
+}
+
 void ParticleEmitter::burst(i32 count) {
     emit(count);
 }

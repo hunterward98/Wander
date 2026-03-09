@@ -38,11 +38,20 @@ void draw_rect(Rect rect, Color color);
 // Draw a rectangle outline
 void draw_rect_outline(Rect rect, Color color);
 
+// Draw a line between two points
+void draw_line(Vec2 from, Vec2 to, Color color);
+
 // Draw a drop shadow (filled ellipse) at a position
 // pos: center of the shadow
 // width, height: ellipse dimensions
 // alpha: shadow opacity (0-255)
 // segments: number of horizontal scanlines for smoothness
 void draw_shadow(Vec2 pos, f32 width, f32 height, u8 alpha = 40, i32 segments = 16);
+
+// Set a clip rectangle to restrict rendering to a region
+void set_clip_rect(Rect rect);
+
+// Clear the clip rectangle (allow rendering to full target)
+void clear_clip_rect();
 
 } // namespace wander

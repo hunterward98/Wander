@@ -20,6 +20,12 @@ struct AppConfig {
     const char* title = "Wander Engine";
     i32 window_width = 800;
     i32 window_height = 600;
+    i32 logical_width = 0;   // Logical resolution for integer scaling (0 = same as window)
+    i32 logical_height = 0;
+    i32 min_window_width = 0;   // Minimum window size (0 = no minimum)
+    i32 min_window_height = 0;
+    bool use_logical_presentation = true;  // false = render in raw pixel coords, no scaling
+    f32 render_scale = 1.0f;  // Fixed render scale (e.g. 2.0 for pixel-doubled rendering)
     bool fullscreen = false;
     bool vsync = true;
     bool resizable = true;

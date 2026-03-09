@@ -17,6 +17,9 @@ struct Font {
     Texture atlas;
     void* internal = nullptr;  // stbtt_bakedchar array
     f32 size = 0.0f;
+    f32 ascent = 0.0f;      // pixels from top of text to baseline (positive)
+    f32 descent = 0.0f;     // pixels from baseline to bottom of descenders (positive)
+    f32 line_height = 0.0f; // ascent + descent — actual height of one line of text
     i32 atlas_width = 0;
     i32 atlas_height = 0;
     FontShadow shadow;

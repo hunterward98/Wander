@@ -47,6 +47,7 @@ public:
     void init(const ParticleEmitterConfig& config);
     void update(f32 dt);
     void render();
+    void render(Vec2 cam_offset, f32 cam_scale);
     void burst(i32 count);
     void set_position(Vec2 pos);
     bool is_alive() const;

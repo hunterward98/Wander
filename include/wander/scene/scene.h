@@ -60,6 +60,7 @@ private:
 
     // Transition state
     bool transitioning_ = false;
+    bool midpoint_swapped_ = false;
     f32 transition_timer_ = 0.0f;
     Transition transition_;
     std::unique_ptr<Scene> incoming_scene_;

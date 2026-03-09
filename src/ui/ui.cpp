@@ -40,7 +40,7 @@ void UI::end() {
         draw_rect(bg, Color(20, 20, 30, 240));
         draw_rect_outline(bg, style_.border);
         draw_text(*font_, tooltip_text_,
-            {bg.x + style_.padding, bg.y + style_.padding + font_->size * 0.8f},
+            {bg.x + style_.padding, bg.y + style_.padding},
             style_.text_normal);
     }
 }
@@ -58,7 +58,7 @@ void UI::begin_panel(const char* title, Rect bounds) {
     // Draw title
     if (title && title[0] && font_) {
         draw_text(*font_, title,
-            {cursor_.x, cursor_.y + font_->size * 0.8f}, style_.text_normal);
+            {cursor_.x, cursor_.y}, style_.text_normal);
         cursor_.y += font_->size + style_.item_spacing;
         separator();
     }
@@ -104,7 +104,7 @@ bool UI::button(const char* label, Rect bounds) {
         Vec2 text_size = measure_text(*font_, label);
         Vec2 text_pos = {
             bounds.x + (bounds.w - text_size.x) * 0.5f,
-            bounds.y + (bounds.h + font_->size * 0.8f) * 0.5f
+            bounds.y + (bounds.h - text_size.y) * 0.5f
         };
         draw_text(*font_, label, text_pos, style_.text_normal);
     }
@@ -156,7 +156,7 @@ void UI::label(const char* text, Color color) {
     if (!font_ || !text) return;
     Vec2 size = measure_text(*font_, text);
     Rect r = next_rect(size.x, size.y);
-    draw_text(*font_, text, {r.x, r.y + font_->size * 0.8f}, color);
+    draw_text(*font_, text, {r.x, r.y}, color);
 }
 
 bool UI::slider(const char* label_text, f32* value, f32 min_val, f32 max_val) {
@@ -200,7 +200,7 @@ bool UI::slider(const char* label_text, f32* value, f32 min_val, f32 max_val) {
         Vec2 text_size = measure_text(*font_, buf);
         draw_text(*font_, buf,
             {bounds.x + (bounds.w - text_size.x) * 0.5f,
-             bounds.y + (bounds.h + font_->size * 0.8f) * 0.5f},
+             bounds.y + (bounds.h - text_size.y) * 0.5f},
             style_.text_normal);
     }
 
@@ -253,7 +253,7 @@ bool UI::checkbox(const char* label_text, bool* checked) {
     if (font_ && label_text) {
         draw_text(*font_, label_text,
             {box_rect.right() + style_.padding,
-             bounds.y + (bounds.h + font_->size * 0.8f) * 0.5f},
+             bounds.y + (bounds.h - measure_text(*font_, label_text).y) * 0.5f},
             style_.text_normal);
     }
 
@@ -277,7 +277,7 @@ bool UI::text_input(const char* label_text, char* buffer, i32 buffer_size) {
 
     if (font_ && buffer[0]) {
         draw_text(*font_, buffer,
-            {bounds.x + style_.padding, bounds.y + style_.padding + font_->size * 0.8f},
+            {bounds.x + style_.padding, bounds.y + style_.padding},
             style_.text_normal);
     }
 
